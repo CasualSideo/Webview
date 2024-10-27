@@ -3,15 +3,15 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Google</title> <!-- Title -->
-    <link rel="icon" href="https://www.google.com/favicon.ico" type="image/x-icon"> <!-- Google favicon -->
+    <title>Custom Browser</title>
+    <link rel="icon" href="https://www.google.com/favicon.ico" type="image/x-icon">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
             margin: 0;
             padding: 0;
-            background-color: #121212; /* Dark background */
-            color: #ffffff; /* Light text */
+            background-color: #121212;
+            color: #ffffff;
             transition: background-color 0.3s, color 0.3s;
             height: 100vh;
             overflow: hidden;
@@ -23,12 +23,12 @@
             bottom: 0;
             left: 0;
             right: 0;
-            height: 5px; /* Adjust height as needed */
-            background-color: rgba(255, 255, 255, 0.1); /* Slightly visible border */
-            z-index: 9999; /* Ensure it stays on top */
+            height: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            z-index: 9999;
         }
         .toolbar {
-            background-color: #1e1e1e; /* Dark toolbar */
+            background-color: #1e1e1e;
             border-bottom: 1px solid #444;
             display: flex;
             align-items: center;
@@ -44,27 +44,23 @@
             padding: 10px;
             border: 1px solid #444;
             border-radius: 5px;
-            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            background-color: #333;
+            color: #fff;
             font-size: 14px;
-            background-color: #333; /* Dark input background */
-            color: #fff; /* Light input text */
         }
         .button {
             padding: 10px;
             cursor: pointer;
-            background-color: #333; /* Dark button */
+            background-color: #333;
             border: 1px solid #444;
             border-radius: 5px;
             margin-right: 5px;
             box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
             transition: background-color 0.2s;
-            color: #fff; /* Light button text */
-        }
-        .button:not(:last-child) {
-            margin-right: 10px; /* Additional spacing between buttons */
+            color: #fff;
         }
         .button:hover {
-            background-color: #444; /* Darker on hover */
+            background-color: #444;
         }
         .tab-container {
             display: flex;
@@ -75,18 +71,16 @@
         .tab {
             padding: 10px 20px;
             cursor: pointer;
-            background-color: #333; /* Dark tab */
+            background-color: #333;
             border: 1px solid #444;
             border-radius: 4px 4px 0 0;
             margin-right: 5px;
             position: relative;
             transition: background-color 0.2s;
-            font-size: 14px;
-            flex-grow: 1;
-            color: #fff; /* Light tab text */
+            color: #fff;
         }
         .tab.active {
-            background-color: #1e1e1e; /* Dark active tab */
+            background-color: #1e1e1e;
             border-bottom: 1px solid transparent;
             box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
         }
@@ -99,44 +93,40 @@
             font-size: 12px;
         }
         .embed-container {
-            flex: 1; /* Allow container to take remaining space */
+            flex: 1;
             overflow: hidden;
-            position: relative; /* Ensure relative positioning */
+            position: relative;
         }
         embed {
             width: 100%;
             height: 100%;
             border: none;
-            position: absolute; /* Position it absolutely */
-            top: 0; /* Align to the top */
-            left: 0; /* Align to the left */
+            position: absolute;
+            top: 0;
+            left: 0;
         }
-        /* Light mode styles */
         .light-mode {
-            background-color: #f1f1f1; /* Light background */
-            color: #000; /* Dark text */
+            background-color: #f1f1f1;
+            color: #000;
         }
         .light-mode .toolbar {
-            background-color: #ffffff; /* Light toolbar */
+            background-color: #ffffff;
             border-bottom: 1px solid #ccc;
         }
         .light-mode .url-bar input {
-            background-color: #fff; /* Light input background */
-            color: #000; /* Dark input text */
+            background-color: #fff;
+            color: #000;
         }
         .light-mode .button {
-            background-color: #f8f8f8; /* Light button */
-            color: #000; /* Dark button text */
+            background-color: #f8f8f8;
+            color: #000;
         }
         .light-mode .tab {
-            background-color: #eaeaea; /* Light tab */
-            color: #000; /* Dark tab text */
+            background-color: #eaeaea;
+            color: #000;
         }
         .light-mode .tab.active {
-            background-color: #ffffff; /* Light active tab */
-        }
-        .light-mode .tab-container {
-            background-color: #f1f1f1; /* Light tab container */
+            background-color: #ffffff;
         }
     </style>
 </head>
@@ -148,7 +138,7 @@
     <div class="url-bar">
         <input type="text" id="urlInput" placeholder="Enter URL or search query" onkeydown="checkEnter(event)" />
     </div>
-    <div class="button" style="margin-left: 10px;" onclick="loadPage()">Go</div>
+    <div class="button" onclick="loadPage()">Go</div>
     <div class="button" onclick="addTab()">+ Tab</div>
     <div class="button" onclick="toggleFullScreen()">⛶</div>
     <div class="button" onclick="toggleTheme()">🌙/☀️</div>
@@ -158,7 +148,7 @@
     <embed id="webview" src="https://www.google.com/webhp?igu=1" allowfullscreen></embed>
 </div>
 
-<div class="bottom-border"></div> <!-- Added border -->
+<div class="bottom-border"></div>
 
 <script>
     let activeTabIndex = 0;
@@ -168,34 +158,30 @@
         const urlInput = document.getElementById('urlInput');
         let url = urlInput.value.trim();
 
-        // Check if the input is a valid URL
-        const urlPattern = new RegExp('^(https?:\\/\\/)?'+ // protocol
-            '((([a-z\\d]([a-z\\d-]*[a-z\\d])?)\\.)+[a-z]{2,}|'+ // domain name
-            'localhost|'+ // localhost
-            '\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|'+ // IP address
-            '\\[?[a-f\\d:]+\\]?)+'+ // IPv6
-            '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+ // port and path
-            '(\\?[;&a-z\\d%_.~+=-]*)?'+ // query string
-            '(\\#[-a-z\\d_]*)?$','i'); // fragment locator
+        const urlPattern = new RegExp('^(https?:\\/\\/)?'+
+            '((([a-z\\d]([a-z\\d-]*[a-z\\d])?)\\.)+[a-z]{2,}|'+
+            'localhost|\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}\\.\\d{1,3}|'+
+            '\\[?[a-f\\d:]+\\]?)+'+
+            '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*'+
+            '(\\?[;&a-z\\d%_.~+=-]*)?'+
+            '(\\#[-a-z\\d_]*)?$','i');
 
         if (url) {
-            // If it's a valid URL, load it
             if (urlPattern.test(url)) {
                 if (!url.startsWith('http')) {
-                    url = 'https://' + url; // Add HTTPS if no protocol is specified
+                    url = 'https://' + url;
                 }
             } else {
-                // Use the specified Google search URL format for search queries
-                url = 'https://www.google.com/search?q=' + encodeURIComponent(url) + '&sca_esv=53e1b9c4b6162517&igu=1&source=hp&ei=eZMeZ9mAL63mwN4PoNrWwAQ&iflsig=AL9hbdgAAAAAZx6hiev9F0CfTeHW32ZpEgP27CU1bADe&ved=0ahUKEwiZobPupK-JAxUtM9AFHSCtFUgQ4dUDCA0&uact=5&oq=' + encodeURIComponent(url) + '&gs_lp=Egdnd3Mtd2l6IgdrYXNva2lzMgoQLhiABBixAxgNMgcQLhiABBgNMg0QLhiABBjHARgNGK8BMgcQABiABBgNMgcQLhiABBgNMgcQABiABBgNMgcQABiABBgNMgcQABiABBgNMgcQABiABBgNMgcQABiABBgNSLAEUABYygFwAHgAkAEBmAF-oAHVBKoBAzMuM7gBA8gBAPgBAZgCBaAC9QPCAgoQIxiABBgnGIoFwgIEECMYJ8ICCxAuGIAEGJECGIoFwgILEAAYgAQYkQIYigXCAggQLhiABBixA8ICFhAuGIAEGLEDGNEDGIMBGMcBGIoFGArCAg4QLhiABBixAxiDARiKBcICCBAAGIAEGLEDwgIOEC4YgAQYsQMYxwEYrwHCAhEQLhiABBixAxiDARjHARivAcICBRAAGIAEwgILEC4YgAQYsQMYgwHCAg4QLhiABBixAxjRAxjHAcICCxAuGIAEGMcBGK8BwgIHEAAYgAQYCsICBxAuGIAEGAqYAwCSBwMzLjKgB-ZX&sclient=gws-wiz';
+                url = 'https://www.google.com/search?q=' + encodeURIComponent(url);
             }
         } else {
-            // Default to Google homepage if input is empty
             url = 'https://www.google.com/webhp?igu=1';
         }
 
         const currentTab = tabs[activeTabIndex];
         currentTab.url = url;
         document.getElementById('webview').src = url;
+        document.getElementById('urlInput').value = url; // Update URL input to show current URL
     }
 
     function checkEnter(event) {
@@ -212,15 +198,15 @@
         tab.className = 'tab';
         tab.innerText = `Tab ${newTabIndex + 1}`;
         tab.onclick = () => switchTab(newTabIndex);
-        
+
         const closeButton = document.createElement('span');
         closeButton.className = 'close-tab';
         closeButton.innerText = '✖';
         closeButton.onclick = (e) => {
-            e.stopPropagation(); // Prevent tab switch on close button click
+            e.stopPropagation();
             removeTab(newTabIndex);
         };
-        
+
         tab.appendChild(closeButton);
         document.getElementById('tabContainer').appendChild(tab);
         switchTab(newTabIndex);
@@ -230,23 +216,19 @@
         const previousTab = tabs[activeTabIndex];
         activeTabIndex = index;
 
-        document.getElementById('urlInput').value = previousTab.url;
+        document.getElementById('urlInput').value = previousTab.url; // Correctly show the URL of the active tab
         document.getElementById('webview').src = previousTab.url;
 
-        const tabContainer = document.getElementById('tabContainer');
-        const tabDivs = tabContainer.getElementsByClassName('tab');
-
+        const tabDivs = document.getElementById('tabContainer').getElementsByClassName('tab');
         Array.from(tabDivs).forEach(tab => tab.classList.remove('active'));
         tabDivs[activeTabIndex].classList.add('active');
     }
 
     function removeTab(index) {
         tabs.splice(index, 1);
-        const tabContainer = document.getElementById('tabContainer');
-        const tabDivs = tabContainer.getElementsByClassName('tab');
-        tabContainer.removeChild(tabDivs[index]);
+        const tabDivs = document.getElementById('tabContainer').getElementsByClassName('tab');
+        tabDivs[index].remove();
 
-        // Adjust active tab if necessary
         if (activeTabIndex >= index) {
             activeTabIndex = Math.max(activeTabIndex - 1, 0);
         }
@@ -254,39 +236,26 @@
         if (tabs.length > 0) {
             switchTab(activeTabIndex);
         } else {
-            // If no tabs left, reset the URL input
             document.getElementById('urlInput').value = '';
             document.getElementById('webview').src = 'about:blank';
         }
-
-        resizeTabs();
     }
 
     function toggleFullScreen() {
         const elem = document.documentElement;
         if (elem.requestFullscreen) {
             elem.requestFullscreen();
-        } else if (elem.mozRequestFullScreen) { // Firefox
+        } else if (elem.mozRequestFullScreen) {
             elem.mozRequestFullScreen();
-        } else if (elem.webkitRequestFullscreen) { // Chrome, Safari, and Opera
+        } else if (elem.webkitRequestFullscreen) {
             elem.webkitRequestFullscreen();
-        } else if (elem.msRequestFullscreen) { // IE/Edge
+        } else if (elem.msRequestFullscreen) {
             elem.msRequestFullscreen();
         }
     }
 
     function toggleTheme() {
         document.body.classList.toggle('light-mode');
-    }
-
-    function resizeTabs() {
-        const tabContainer = document.getElementById('tabContainer');
-        const tabsDivs = tabContainer.getElementsByClassName('tab');
-        const tabWidth = 100 / tabsDivs.length;
-
-        Array.from(tabsDivs).forEach(tab => {
-            tab.style.width = `${tabWidth}%`;
-        });
     }
 
     // Load initial tab
