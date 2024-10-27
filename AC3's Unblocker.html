@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AC3's Unblocker</title>
+    <style>
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #121212;
+            color: #ffffff;
+            transition: background-color 0.3s, color 0.3s;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+        .bottom-border {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 5px;
+            background-color: rgba(255, 255, 255, 0.1);
+            z-index: 9999;
+        }
+        .toolbar {
+            background-color: #1e1e1e;
+            border-bottom: 1px solid #444;
+            display: flex;
+            align-items: center;
+            padding: 5px;
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+        }
+        .url-bar {
+            flex: 1;
+            margin: 0 5px;
+        }
+        .url-bar input {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #444;
+            border-radius: 5px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            font-size: 14px;
+            background-color: #333;
+            color: #fff;
+        }
+        .button {
+            padding: 10px;
+            cursor: pointer;
+            background-color: #333;
+            border: 1px solid #444;
+            border-radius: 5px;
+            margin-right: 5px;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+            transition: background-color 0.2s;
+            color: #fff;
+        }
+        .button:hover {
+            background-color: #444;
+        }
+        .tab-container {
+            display: flex;
+            padding: 5px;
+            border-bottom: 1px solid #444;
+            overflow-x: auto;
+        }
+        .tab {
+            padding: 10px 20px;
+            cursor: pointer;
+            background-color: #333;
+            border: 1px solid #444;
+            border-radius: 4px 4px 0 0;
+            margin-right: 5px;
+            position: relative;
+            transition: background-color 0.2s;
+            font-size: 14px;
+            flex-grow: 1;
+            color: #fff;
+        }
+        .tab.active {
+            background-color: #1e1e1e;
+            border-bottom: 1px solid transparent;
+            box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
+        }
+        .close-tab {
+            position: absolute;
+            right: 5px;
+            top: 5px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 12px;
+        }
+        .embed-container {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+        }
+        embed {
+            width: 100%;
+            height: 100%;
+            border: none;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        /* Light mode styles */
+        .light-mode {
+            background-color: #f1f1f1;
+            color: #000;
+        }
+        .light-mode .toolbar {
+            background-color: #ffffff;
+            border-bottom: 1px solid #ccc;
+        }
+        .light-mode .url-bar input {
+            background-color: #fff;
+            color: #000;
+        }
+        .light-mode .button {
+            background-color: #f8f8f8;
+            color: #000;
+        }
+        .light-mode .tab {
+            background-color: #eaeaea;
+            color: #000;
+        }
+        .light-mode .tab.active {
+            background-color: #ffffff;
+        }
+        .light-mode .tab-container {
+            background-color: #f1f1f1;
+        }
+    </style>
+</head>
+<body class="dark-mode">
+
+<div class="tab-container" id="tabContainer"></div>
+
+<div class="toolbar">
+    <div class="url-bar">
+        <input type="text" id="urlInput" placeholder="Enter URL or search query" onkeydown="checkEnter(event)" />
+    </div>
+    <div class="button" style="margin-left: 10px;" onclick="loadPage()">Go</div>
+    <div class="button" onclick="addTab()">+ Tab</div>
+    <div class="button" onclick="toggleFullScreen()">⛶</div>
+    <div class="button" onclick="toggleTheme()">🌙/☀️</div>
+</div>
+
+<div class="embed-container">
+    <embed id="webview" src="https://www.google.com/webhp?igu=1" allowfullscreen></embed>
+</div>
+
+<div class="bottom-border"></div>
+
+<script>
+    let activeTabIndex = 0;
+    const tabs = [];
+
+    function loadPage() {
+        const urlInput = document.getElementById('urlInput');
+        let url = urlInput.value.trim();
+
+        // Default to Google search page if input is empty
+        if (!url) {
+            url = 'https://www.google.com/webhp?igu=1';
+        } else if (!url.startsWith('http://') && !url.startsWith('https://')) {
+            // Check if it's a domain
+            if (/^[a-z0-9.-]+\.[a-z]{2,}$/.test(url)) {
+                url = 'https://' + url; // Prepend 'https://' if it's a domain
+            } else {
+                // Construct the search URL
+                url = `https://www.google.com/search?q=${encodeURIComponent(url)}&sca_esv=917ccb7aa9f65c9d&igu=1&source=hp&ei=0XAeZ-PaLZX00PEP0aXAoAU&iflsig=AL9hbdgAAAAAZx5-4Zhv25WOz3DqM1aoQE7oqJThExOJ&ved=0ahUKEwijh_Lng6-JAxUVOjQIHdESEFQQ4dUDCA8&uact=5&oq=${encodeURIComponent(url)}&gs_lp=Egdnd3Mtd2l6IgdqYXNqa2FzMgoQLhiABBixAxgNMgcQLhiABBgNMgcQABiABBgNMgcQABiABBgNMgcQABiABBgNMgcQABiABBgNMgcQABiABBgNMgcQABiABBgNMgcQABiABBgNMgcQLhiABBgNSJsEUM4BWJQDcAF4AJABAZgBhQGgAaQFqgEDMi40uAEDyAEA-AEBmAIGoALSBKgCCsICBxAjGCcY6gLCAgoQIxiABBgnGIoFwgILEAAYgAQYkQIYigXCAgsQLhiABBiRAhiKBcICChAAGIAEGEMYigXCAgsQLhiABBixAxiDAcICDRAAGIAEGLEDGEMYigXCAg4QLhiABBixAxiDARiKBcICDhAuGIAEGJECGNQCGIoFwgITEC4YgAQYsQMYQxiDARjUAhiKBcICDRAuGIAEGLEDGEMYigXCAggQLhiABBixA8ICCxAuGIAEGMcBGK8BwgIFEAAYgATCAgcQLhiABBgKwgIFEC4YgATCAhAQLhiABBixAxjRAxjHARgKwgIHEAAYgAQYCsICEBAuGIAEGMcBGMkDGAoYrwHCAg0QLhiABBjRAxjHARgKmAMMkgcDMi40oAfGVg&sclient=gws-wiz`;
+            }
+        }
+
+        if (tabs[activeTabIndex]) {
+            tabs[activeTabIndex].url = url;
+            document.getElementById('webview').src = url;
+            updateActiveTab();
+        }
+    }
+
+    function checkEnter(event) {
+        if (event.key === 'Enter') {
+            loadPage();
+        }
+    }
+
+    function addTab() {
+        const newTab = { url: 'https://www.google.com/webhp?igu=1', history: [] };
+        tabs.push(newTab);
+        const newTabIndex = tabs.length - 1;
+
+        const tabContainer = document.getElementById('tabContainer');
+        const tabDiv = createTabElement(newTabIndex);
+        tabContainer.appendChild(tabDiv);
+
+        switchTab(newTabIndex);
+        resizeTabs();
+    }
+
+    function createTabElement(index) {
+        const tabDiv = document.createElement('div');
+        tabDiv.className = 'tab';
+        tabDiv.innerHTML = `Tab ${index + 1} <span class="close-tab" onclick="closeTab(${index})">✖</span>`;
+        tabDiv.onclick = () => switchTab(index);
+        return tabDiv;
+    }
+
+    function switchTab(index) {
+        const tabContainer = document.getElementById('tabContainer');
+        const tabsDivs = tabContainer.getElementsByClassName('tab');
+
+        Array.from(tabsDivs).forEach(tab => tab.classList.remove('active'));
+        tabsDivs[index].classList.add('active');
+
+        activeTabIndex = index;
+        const currentTab = tabs[activeTabIndex];
+        document.getElementById('webview').src = currentTab.url;
+        updateActiveTab();
+    }
+
+    function closeTab(index) {
+        tabs.splice(index, 1);
+        const tabContainer = document.getElementById('tabContainer');
+        const tabsDivs = tabContainer.getElementsByClassName('tab');
+
+        tabContainer.removeChild(tabsDivs[index]);
+
+        if (tabs.length === 0) {
+            document.getElementById('webview').src = "";
+            document.getElementById('urlInput').value = "";
+            activeTabIndex = -1; // Reset
+        } else {
+            // Automatically switch to the previous tab or the next tab
+            if (index <= activeTabIndex) {
+                activeTabIndex = Math.max(activeTabIndex - 1, 0);
+            }
+            switchTab(activeTabIndex); // Switch to new active tab
+        }
+
+        resizeTabs();
+    }
+
+    function updateActiveTab() {
+        if (tabs[activeTabIndex]) {
+            const currentTab = tabs[activeTabIndex];
+            document.getElementById('urlInput').value = currentTab.url;
+        }
+    }
+
+    function toggleFullScreen() {
+        const embed = document.getElementById('webview');
+        if (!document.fullscreenElement) {
+            embed.requestFullscreen().catch(err => console.log(err));
+        } else {
+            document.exitFullscreen();
+        }
+    }
+
+    function resizeTabs() {
+        const tabContainer = document.getElementById('tabContainer');
+        const tabsDivs = tabContainer.getElementsByClassName('tab');
+        const totalTabs = tabsDivs.length;
+        const tabWidth = totalTabs > 0 ? (tabContainer.clientWidth / totalTabs) - 5 : 0;
+
+        Array.from(tabsDivs).forEach(tab => {
+            tab.style.flexBasis = `${tabWidth}px`;
+        });
+    }
+
+    function toggleTheme() {
+        document.body.classList.toggle('dark-mode');
+        document.body.classList.toggle('light-mode'); // Add light-mode class
+    }
+
+    // Listen for changes to the embed's src attribute
+    document.getElementById('webview').addEventListener('load', function() {
+        const currentTab = tabs[activeTabIndex];
+        if (currentTab) {
+            currentTab.url = this.contentWindow.location.href; // Update URL to reflect current site
+            updateActiveTab(); // Update the input field
+        }
+    });
+
+    // Initializing with the first tab
+    addTab();
+</script>
+
+</body>
+</html>
