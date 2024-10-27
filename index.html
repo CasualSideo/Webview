@@ -162,6 +162,7 @@
         let input = urlInput.value.trim();
 
         const searchBaseUrl = "https://www.google.com/search?q=";
+        const additionalParams = "&sca_esv=99c798c151899129&igu=1&source=hp&ei=y6QeZ6bgGoru0PEPnMPkqAE&iflsig=AL9hbdgAAAAAZx6y282P1yysLW9cTI0PCJyvMr_4_7xd&ved=0ahUKEwjm8cSwta-JAxUKNzQIHZwhGRUQ4dUDCA0&uact=5&oq=";
 
         const urlPattern = new RegExp('^(https?:\\/\\/)?'+
             '((([a-z\\d]([a-z\\d-]*[a-z\\d])?)\\.)+[a-z]{2,}|'+
@@ -178,7 +179,8 @@
                 document.getElementById('webview').src = currentTab.url;
                 urlInput.value = currentTab.url; // Update the input to show the current URL
             } else {
-                const url = `${searchBaseUrl}${encodeURIComponent(input)}`;
+                // Use the new search template
+                const url = `${searchBaseUrl}${encodeURIComponent(input)}${additionalParams}${encodeURIComponent(input)}`;
                 const currentTab = tabs[activeTabIndex];
                 currentTab.url = url;
                 document.getElementById('webview').src = url;
@@ -248,13 +250,15 @@
     }
 
     function toggleFullScreen() {
-        const embedContainer = document.querySelector('.embed-container');
-        if (!document.fullscreenElement) {
-            embedContainer.requestFullscreen().catch(err => {
-                console.error(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
-            });
-        } else {
-            document.exitFullscreen();
+        const elem = document.documentElement;
+        if (elem.requestFullscreen) {
+            elem.requestFullscreen();
+        } else if (elem.mozRequestFullScreen) {
+            elem.mozRequestFullScreen();
+        } else if (elem.webkitRequestFullscreen) {
+            elem.webkitRequestFullscreen();
+        } else if (elem.msRequestFullscreen) {
+            elem.msRequestFullscreen();
         }
     }
 
