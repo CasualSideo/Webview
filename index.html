@@ -176,17 +176,18 @@
                 const currentTab = tabs[activeTabIndex];
                 currentTab.url = (input.startsWith('http://') || input.startsWith('https://')) ? input : 'https://' + input;
                 document.getElementById('webview').src = currentTab.url;
+                urlInput.value = currentTab.url; // Update the input to show the current URL
             } else {
-                const url = `${searchBaseUrl}${encodeURIComponent(input)}&sca_esv=99c798c151899129&igu=1&source=hp&ei=DJ8eZ_zCO5-90PEP7fmuSQ&iflsig=AL9hbdgAAAAAZx6tHXiTykDH5duQKEsSdi8rUY9uY40d&ved=0ahUKEwj8-K7zr6-JAxWfHjQIHe28KwkQ4dUDCA0&uact=5`;
+                const url = `${searchBaseUrl}${encodeURIComponent(input)}`;
                 const currentTab = tabs[activeTabIndex];
                 currentTab.url = url;
                 document.getElementById('webview').src = url;
+                urlInput.value = url; // Update the input to show the current URL
             }
         } else {
             document.getElementById('webview').src = 'https://www.google.com/webhp?igu=1';
+            urlInput.value = ''; // Clear the input when loading default page
         }
-
-        document.getElementById('urlInput').value = input;
     }
 
     function checkEnter(event) {
@@ -221,7 +222,7 @@
         const previousTab = tabs[activeTabIndex];
         activeTabIndex = index;
 
-        document.getElementById('urlInput').value = previousTab.url;
+        document.getElementById('urlInput').value = previousTab.url; // Update the URL input to show current URL
         document.getElementById('webview').src = previousTab.url;
 
         const tabDivs = document.getElementById('tabContainer').getElementsByClassName('tab');
