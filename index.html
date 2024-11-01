@@ -161,7 +161,7 @@
         </div>
         <div class="button" onclick="loadPage()">Go</div>
         <div class="button" onclick="addTab()">+ Tab</div>
-        <div class="button" onclick="toggleFullScreen()">⛶</div>
+        <div class="button" onclick="toggleEmbedFullScreen()">⛶</div>
         <div class="button" onclick="toggleTheme()">🌙/☀️</div>
     </div>
 
@@ -297,13 +297,16 @@
             urlInput.value = url;
         }
 
-        function toggleFullScreen() {
-            if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
-            } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
+        function toggleEmbedFullScreen() {
+            const webview = document.getElementById('webview');
+            if (webview.requestFullscreen) {
+                webview.requestFullscreen();
+            } else if (webview.mozRequestFullScreen) { // Firefox
+                webview.mozRequestFullScreen();
+            } else if (webview.webkitRequestFullscreen) { // Chrome, Safari, and Opera
+                webview.webkitRequestFullscreen();
+            } else if (webview.msRequestFullscreen) { // IE/Edge
+                webview.msRequestFullscreen();
             }
         }
 
