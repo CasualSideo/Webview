@@ -207,6 +207,11 @@
                     url = `${searchBaseUrl}${encodeURIComponent(input)}${additionalParams}${encodeURIComponent(input)}`;
                 }
 
+                // Check if there's no existing tab and create one if necessary
+                if (tabs.length === 1 && activeTabIndex === 0) {
+                    addTab(); // Create a new tab
+                }
+
                 const currentTab = tabs[activeTabIndex];
                 currentTab.url = url;
                 document.getElementById('webview').src = url;
@@ -276,12 +281,12 @@
 
         function removeTab(index) {
             if (tabs.length === 1) {
-                alert("Cannot close the last tab. Redirecting to a blank page.");
-                document.getElementById('webview').src = "about:blank";
-                updateURLBar("about:blank");
+                // Clear the tab data and UI without an alert
                 tabs.length = 0; // Clear tabs array
                 activeTabIndex = -1; // Reset active tab index
                 document.getElementById('tabContainer').innerHTML = ""; // Clear tab container
+                document.getElementById('webview').src = "about:blank"; // Load a blank page
+                updateURLBar("about:blank"); // Update URL bar
                 document.getElementById('embedContainer').style.display = 'none'; // Hide embed container
                 return;
             }
