@@ -173,22 +173,24 @@
             '(\\#[-a-z\\d_]*)?$','i');
 
         if (input) {
+            let url;
             if (urlPattern.test(input)) {
-                const currentTab = tabs[activeTabIndex];
-                currentTab.url = (input.startsWith('http://') || input.startsWith('https://')) ? input : 'https://' + input;
-                document.getElementById('webview').src = currentTab.url;
-                urlInput.value = currentTab.url; // Update the input to show the current URL
+                url = (input.startsWith('http://') || input.startsWith('https://')) ? input : 'https://' + input;
             } else {
-                // Use the new search template
-                const url = `${searchBaseUrl}${encodeURIComponent(input)}${additionalParams}${encodeURIComponent(input)}`;
-                const currentTab = tabs[activeTabIndex];
-                currentTab.url = url;
-                document.getElementById('webview').src = url;
-                urlInput.value = url; // Update the input to show the current URL
+                url = `${searchBaseUrl}${encodeURIComponent(input)}${additionalParams}${encodeURIComponent(input)}`;
             }
+
+            const currentTab = tabs[activeTabIndex];
+            currentTab.url = url;
+            document.getElementById('webview').src = url;
+            urlInput.value = url;
+
+            // Update the URL in the address bar without reloading the page
+            history.pushState(null, '', url);
         } else {
             document.getElementById('webview').src = 'https://www.google.com/webhp?igu=1';
-            urlInput.value = ''; // Clear the input when loading default page
+            urlInput.value = '';
+            history.pushState(null, '', 'https://www.google.com/webhp?igu=1');
         }
     }
 
@@ -224,12 +226,15 @@
         const previousTab = tabs[activeTabIndex];
         activeTabIndex = index;
 
-        document.getElementById('urlInput').value = previousTab.url; // Update the URL input to show current URL
+        document.getElementById('urlInput').value = previousTab.url;
         document.getElementById('webview').src = previousTab.url;
 
         const tabDivs = document.getElementById('tabContainer').getElementsByClassName('tab');
         Array.from(tabDivs).forEach(tab => tab.classList.remove('active'));
         tabDivs[activeTabIndex].classList.add('active');
+
+        // Update URL in the address bar to reflect the current tab's URL
+        history.pushState(null, '', previousTab.url);
     }
 
     function removeTab(index) {
@@ -237,38 +242,24 @@
         const tabDivs = document.getElementById('tabContainer').getElementsByClassName('tab');
         tabDivs[index].remove();
 
-        if (activeTabIndex >= index) {
-            activeTabIndex = Math.max(activeTabIndex - 1, 0);
-        }
-
-        if (tabs.length > 0) {
+        if (index === activeTabIndex && tabs.length > 0) {
+            activeTabIndex = Math.max(0, index - 1);
             switchTab(activeTabIndex);
-        } else {
-            document.getElementById('urlInput').value = '';
-            document.getElementById('webview').src = 'about:blank';
         }
     }
 
     function toggleFullScreen() {
-        const embed = document.getElementById('webview');
-
-        if (embed.requestFullscreen) {
-            embed.requestFullscreen();
-        } else if (embed.mozRequestFullScreen) { // Firefox
-            embed.mozRequestFullScreen();
-        } else if (embed.webkitRequestFullscreen) { // Chrome, Safari, and Opera
-            embed.webkitRequestFullscreen();
-        } else if (embed.msRequestFullscreen) { // IE/Edge
-            embed.msRequestFullscreen();
+        if (!document.fullscreenElement) {
+            document.documentElement.requestFullscreen();
+        } else {
+            document.exitFullscreen();
         }
     }
 
     function toggleTheme() {
         document.body.classList.toggle('light-mode');
     }
-
-    // Load initial tab
-    addTab();
 </script>
+
 </body>
 </html>
