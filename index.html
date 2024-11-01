@@ -249,7 +249,7 @@
         }
 
         function closeTab(index) {
-            if (tabs.length > 1) {
+            if (tabs.length > 0) {
                 tabs.splice(index, 1); // Remove tab from the array
                 if (activeTabIndex >= index) {
                     activeTabIndex = Math.max(activeTabIndex - 1, 0);
@@ -269,6 +269,11 @@
             tabContainer.innerHTML = '';
             tabs.forEach((tab, index) => createTabElement(index));
             updateActiveTabStyle(activeTabIndex);
+            if (tabs.length === 0) {
+                document.getElementById('embedContainer').style.display = 'none'; // Hide embed when no tabs
+            } else {
+                loadActiveTabPage();
+            }
         }
 
         function updateActiveTabStyle(index) {
@@ -279,10 +284,12 @@
         }
 
         function loadActiveTabPage() {
-            const currentTab = tabs[activeTabIndex];
-            document.getElementById('webview').src = currentTab.url;
-            updateURLBar(currentTab.url);
-            document.getElementById('embedContainer').style.display = 'block';  // Show embed
+            if (tabs.length > 0) {
+                const currentTab = tabs[activeTabIndex];
+                document.getElementById('webview').src = currentTab.url;
+                updateURLBar(currentTab.url);
+                document.getElementById('embedContainer').style.display = 'block';  // Show embed
+            }
         }
 
         function updateURLBar(url) {
