@@ -207,23 +207,19 @@
                     url = `${searchBaseUrl}${encodeURIComponent(input)}${additionalParams}${encodeURIComponent(input)}`;
                 }
 
-                // Check if there's no existing tab and create one if necessary
-                if (tabs.length === 1 && activeTabIndex === 0) {
-                    addTab(); // Create a new tab
-                }
-
+                // Check if the current tab's URL is the starting URL
                 const currentTab = tabs[activeTabIndex];
-                currentTab.url = url;
+                if (currentTab.url === startingURL) {
+                    currentTab.url = url; // Change the URL of the current tab
+                } else {
+                    // Only create a new tab if the current tab has a different URL
+                    addTab(); // Create a new tab
+                    tabs[tabs.length - 1].url = url; // Set the URL of the new tab
+                }
+                
                 document.getElementById('webview').src = url;
                 updateURLBar(url);
                 history.pushState(null, '', url); // Update the URL in the address bar
-            } else {
-                // If URL bar is blank, load the starting URL and update URL bar
-                const currentTab = tabs[activeTabIndex];
-                currentTab.url = startingURL;
-                document.getElementById('webview').src = startingURL;
-                updateURLBar(startingURL); // Update URL bar with starting URL
-                history.pushState(null, '', startingURL); // Update the URL in the address bar
             }
         }
 
