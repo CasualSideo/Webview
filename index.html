@@ -185,8 +185,13 @@
             const urlInput = document.getElementById('urlInput');
             let input = urlInput.value.trim();
 
+            if (tabs.length === 0) {
+                // Set URL bar to "about:blank" if no tabs are open
+                urlInput.value = 'about:blank';
+                return; // Prevent loading
+            }
+
             const searchBaseUrl = "https://www.google.com/search?q=";
-            const additionalParams = "&sca_esv=99c798c151899129&igu=1&source=hp&ei=y6QeZ6bgGoru0PEPnMPkqAE&iflsig=AL9hbdgAAAAAZx6y282P1yysLW9cTI0PCJyvMr_4_7xd&ved=0ahUKEwjm8cSwta-JAxUKNzQIHZwhGRUQ4dUDCA0&uact=5&oq=";
 
             const urlPattern = new RegExp('^(https?:\\/\\/)?'+
                 '((([a-z\\d]([a-z\\d-]*[a-z\\d])?)\\.)+[a-z]{2,}|'+
@@ -196,17 +201,12 @@
                 '(\\?[;&a-z\\d%_.~+=-]*)?'+
                 '(\\#[-a-z\\d_]*)?$','i');
 
-            if (tabs.length > 0) {
+            if (input) {
                 let url;
-                if (input) {
-                    if (urlPattern.test(input)) {
-                        url = (input.startsWith('http://') || input.startsWith('https://')) ? input : 'https://' + input;
-                    } else {
-                        url = `${searchBaseUrl}${encodeURIComponent(input)}${additionalParams}${encodeURIComponent(input)}`;
-                    }
+                if (urlPattern.test(input)) {
+                    url = (input.startsWith('http://') || input.startsWith('https://')) ? input : 'https://' + input;
                 } else {
-                    // If the URL bar is blank, go to the home page
-                    url = startingURL;
+                    url = `${searchBaseUrl}${encodeURIComponent(input)}`;
                 }
 
                 const currentTab = tabs[activeTabIndex];
@@ -214,6 +214,13 @@
                 document.getElementById('webview').src = url;
                 updateURLBar(url);
                 history.pushState(null, '', url); // Update the URL in the address bar
+            } else {
+                // If URL bar is blank, load the starting URL and update URL bar
+                const currentTab = tabs[activeTabIndex];
+                currentTab.url = startingURL;
+                document.getElementById('webview').src = startingURL;
+                updateURLBar(startingURL); // Update URL bar with starting URL
+                history.pushState(null, '', startingURL); // Update the URL in the address bar
             }
         }
 
@@ -225,8 +232,7 @@
 
         function addTab() {
             const newTabIndex = tabs.length;
-            const newTab = { url: startingURL };
-            tabs.push(newTab);
+            tabs.push({ url: startingURL });
             createTabElement(newTabIndex);
             switchTab(newTabIndex);
         }
@@ -237,89 +243,73 @@
             tab.className = 'tab';
             tab.innerText = `Tab ${index + 1}`;
             tab.onclick = () => switchTab(index);
-            
+
             const closeButton = document.createElement('span');
             closeButton.className = 'close-tab';
             closeButton.innerText = '✖';
-            closeButton.onclick = (event) => {
-                event.stopPropagation();
+            closeButton.onclick = (e) => {
+                e.stopPropagation();
                 closeTab(index);
             };
 
             tab.appendChild(closeButton);
             tabContainer.appendChild(tab);
-            updateActiveTabStyle(index);
         }
 
         function closeTab(index) {
-            if (tabs.length > 0) {
-                tabs.splice(index, 1); // Remove tab from the array
-                if (activeTabIndex >= index) {
-                    activeTabIndex = Math.max(activeTabIndex - 1, 0);
-                }
-                renderTabs();
+            if (tabs.length === 1) {
+                const urlInput = document.getElementById('urlInput');
+                urlInput.value = 'about:blank'; // Set URL bar to "about:blank" when closing last tab
+                document.getElementById('embedContainer').style.display = 'none'; // Hide embed container
             }
+            tabs.splice(index, 1);
+            if (activeTabIndex >= index) {
+                activeTabIndex = Math.max(0, activeTabIndex - 1); // Move to the previous tab if the current tab is closed
+            }
+            refreshTabs();
         }
 
-        function switchTab(index) {
-            activeTabIndex = index;
-            renderTabs();
-            loadActiveTabPage();
-        }
-
-        function renderTabs() {
+        function refreshTabs() {
             const tabContainer = document.getElementById('tabContainer');
             tabContainer.innerHTML = '';
             tabs.forEach((tab, index) => createTabElement(index));
-            updateActiveTabStyle(activeTabIndex);
-            if (tabs.length === 0) {
-                document.getElementById('embedContainer').style.display = 'none'; // Hide embed when no tabs
-            } else {
-                loadActiveTabPage();
-            }
+            switchTab(activeTabIndex);
         }
 
-        function updateActiveTabStyle(index) {
+        function switchTab(index) {
+            if (tabs.length === 0) return; // No tabs available
+            const previousTab = tabs[activeTabIndex];
+            activeTabIndex = index;
+            const currentTab = tabs[activeTabIndex];
+            document.getElementById('webview').src = currentTab.url; // Load the URL in the embed
+            document.getElementById('embedContainer').style.display = 'block'; // Show the embed container
+            updateURLBar(currentTab.url); // Update URL bar
             const tabElements = document.querySelectorAll('.tab');
-            tabElements.forEach((tab, i) => {
-                tab.classList.toggle('active', i === index);
+            tabElements.forEach((tab, idx) => {
+                tab.classList.toggle('active', idx === activeTabIndex);
             });
-        }
-
-        function loadActiveTabPage() {
-            if (tabs.length > 0) {
-                const currentTab = tabs[activeTabIndex];
-                document.getElementById('webview').src = currentTab.url;
-                updateURLBar(currentTab.url);
-                document.getElementById('embedContainer').style.display = 'block';  // Show embed
-            }
         }
 
         function updateURLBar(url) {
             const urlInput = document.getElementById('urlInput');
-            urlInput.value = url;
+            urlInput.value = url; // Update the input field with the URL
         }
 
         function toggleEmbedFullScreen() {
             const webview = document.getElementById('webview');
             if (webview.requestFullscreen) {
                 webview.requestFullscreen();
-            } else if (webview.mozRequestFullScreen) { // Firefox
-                webview.mozRequestFullScreen();
-            } else if (webview.webkitRequestFullscreen) { // Chrome, Safari, and Opera
+            } else if (webview.webkitRequestFullscreen) {
                 webview.webkitRequestFullscreen();
-            } else if (webview.msRequestFullscreen) { // IE/Edge
+            } else if (webview.msRequestFullscreen) {
                 webview.msRequestFullscreen();
             }
         }
 
         function toggleTheme() {
-            document.body.classList.toggle('light-mode');
+            const body = document.body;
+            body.classList.toggle('light-mode');
         }
-
-        document.getElementById('urlInput').addEventListener('focus', function() {
-            this.select();
-        });
     </script>
 </body>
 </html>
