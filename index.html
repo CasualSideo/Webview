@@ -201,7 +201,9 @@
 
             if (input) {
                 let url;
+                // Check if the input is a valid URL or a search query
                 if (urlPattern.test(input)) {
+                    // Ensure it includes the protocol
                     url = (input.startsWith('http://') || input.startsWith('https://')) ? input : 'https://' + input;
                 } else {
                     url = `${searchBaseUrl}${encodeURIComponent(input)}${additionalParams}${encodeURIComponent(input)}`;
@@ -219,7 +221,7 @@
                 
                 document.getElementById('webview').src = url;
                 updateURLBar(url);
-                history.pushState(null, '', url); // Update the URL in the address bar
+                history.pushState(null, '', url);
             }
         }
 
