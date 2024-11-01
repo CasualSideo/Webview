@@ -161,24 +161,27 @@
         </div>
         <div class="button" onclick="loadPage()">Go</div>
         <div class="button" onclick="addTab()">+ Tab</div>
-        <div class="button" onclick="toggleEmbedFullScreen()">⛶</div>
+        <div class="button" onclick="toggleFullScreen()">⛶</div>
         <div class="button" onclick="toggleTheme()">🌙/☀️</div>
     </div>
 
-    <div class="embed-container" id="embedContainer" style="display: none;">
-        <embed id="webview" src="" allowfullscreen></embed>
+    <div class="embed-container" id="embedContainer">
+        <embed id="webview" src="https://www.google.com/webhp?igu=1" allowfullscreen></embed>
     </div>
 
     <div class="bottom-border"></div>
 
     <script>
         let activeTabIndex = 0;
-        const startingURL = 'https://www.google.com/webhp?igu=1';  // Home page URL
-        const tabs = [];  // Initialize with no tabs
+        const startingURL = 'https://www.google.com/webhp?igu=1';
+        const googleSearchTemplate = 'https://www.google.com/search?q=';
+        const tabs = [{ url: startingURL }];  // Initialize with one tab
 
         // Initialize the first tab in the UI
         window.onload = function() {
-            addTab();  // Automatically open the first tab
+            createTabElement(0);
+            updateURLBar(tabs[0].url);
+            document.getElementById('webview').src = tabs[0].url;
         };
 
         function loadPage() {
@@ -186,12 +189,19 @@
             let input = urlInput.value.trim();
 
             if (tabs.length === 0) {
-                // Set URL bar to "about:blank" if no tabs are open
-                urlInput.value = 'about:blank';
-                return; // Prevent loading
+                updateURLBar("about:blank");
+                return;
             }
 
-            const searchBaseUrl = "https://www.google.com/search?q=";
+            const currentTab = tabs[activeTabIndex];
+
+            if (input === "") {
+                currentTab.url = startingURL;
+                document.getElementById('webview').src = startingURL;
+                updateURLBar(startingURL);
+                history.pushState(null, '', startingURL);
+                return;
+            }
 
             const urlPattern = new RegExp('^(https?:\\/\\/)?'+
                 '((([a-z\\d]([a-z\\d-]*[a-z\\d])?)\\.)+[a-z]{2,}|'+
@@ -201,27 +211,17 @@
                 '(\\?[;&a-z\\d%_.~+=-]*)?'+
                 '(\\#[-a-z\\d_]*)?$','i');
 
-            if (input) {
-                let url;
-                if (urlPattern.test(input)) {
-                    url = (input.startsWith('http://') || input.startsWith('https://')) ? input : 'https://' + input;
-                } else {
-                    url = `${searchBaseUrl}${encodeURIComponent(input)}`;
-                }
-
-                const currentTab = tabs[activeTabIndex];
-                currentTab.url = url;
-                document.getElementById('webview').src = url;
-                updateURLBar(url);
-                history.pushState(null, '', url); // Update the URL in the address bar
+            let url;
+            if (urlPattern.test(input)) {
+                url = (input.startsWith('http://') || input.startsWith('https://')) ? input : 'https://' + input;
             } else {
-                // If URL bar is blank, load the starting URL and update URL bar
-                const currentTab = tabs[activeTabIndex];
-                currentTab.url = startingURL;
-                document.getElementById('webview').src = startingURL;
-                updateURLBar(startingURL); // Update URL bar with starting URL
-                history.pushState(null, '', startingURL); // Update the URL in the address bar
+                url = googleSearchTemplate + encodeURIComponent(input);
             }
+
+            currentTab.url = url;
+            document.getElementById('webview').src = url;
+            updateURLBar(url);
+            history.pushState(null, '', url);
         }
 
         function checkEnter(event) {
@@ -249,66 +249,63 @@
             closeButton.innerText = '✖';
             closeButton.onclick = (e) => {
                 e.stopPropagation();
-                closeTab(index);
+                removeTab(index);
             };
 
             tab.appendChild(closeButton);
             tabContainer.appendChild(tab);
         }
 
-        function closeTab(index) {
-            if (tabs.length === 1) {
-                const urlInput = document.getElementById('urlInput');
-                urlInput.value = 'about:blank'; // Set URL bar to "about:blank" when closing last tab
-                document.getElementById('embedContainer').style.display = 'none'; // Hide embed container
-            }
-            tabs.splice(index, 1);
-            if (activeTabIndex >= index) {
-                activeTabIndex = Math.max(0, activeTabIndex - 1); // Move to the previous tab if the current tab is closed
-            }
-            refreshTabs();
-        }
-
-        function refreshTabs() {
-            const tabContainer = document.getElementById('tabContainer');
-            tabContainer.innerHTML = '';
-            tabs.forEach((tab, index) => createTabElement(index));
-            switchTab(activeTabIndex);
-        }
-
         function switchTab(index) {
-            if (tabs.length === 0) return; // No tabs available
-            const previousTab = tabs[activeTabIndex];
+            if (index < 0 || index >= tabs.length) return;
+
+            // Deselect the current tab and select the new tab
+            const currentTab = document.querySelector('.tab.active');
+            if (currentTab) currentTab.classList.remove('active');
+
             activeTabIndex = index;
-            const currentTab = tabs[activeTabIndex];
-            document.getElementById('webview').src = currentTab.url; // Load the URL in the embed
-            document.getElementById('embedContainer').style.display = 'block'; // Show the embed container
-            updateURLBar(currentTab.url); // Update URL bar
-            const tabElements = document.querySelectorAll('.tab');
-            tabElements.forEach((tab, idx) => {
-                tab.classList.toggle('active', idx === activeTabIndex);
-            });
+            const newTab = document.querySelectorAll('.tab')[index];
+            newTab.classList.add('active');
+
+            // Load the selected tab's URL
+            updateURLBar(tabs[index].url);
+            document.getElementById('webview').src = tabs[index].url;
+        }
+
+        function removeTab(index) {
+            if (tabs.length === 1) return;  // Prevent removing the last tab
+            tabs.splice(index, 1);
+            document.getElementById('tabContainer').removeChild(document.querySelectorAll('.tab')[index]);
+            if (index < activeTabIndex) {
+                activeTabIndex--; // Adjust activeTabIndex if a tab before the active tab is closed
+            }
+            switchTab(activeTabIndex > 0 ? activeTabIndex - 1 : 0);
         }
 
         function updateURLBar(url) {
             const urlInput = document.getElementById('urlInput');
-            urlInput.value = url; // Update the input field with the URL
+            if (tabs.length === 0) {
+                urlInput.value = "about:blank";
+            } else {
+                urlInput.value = url;
+            }
         }
 
-        function toggleEmbedFullScreen() {
-            const webview = document.getElementById('webview');
-            if (webview.requestFullscreen) {
-                webview.requestFullscreen();
-            } else if (webview.webkitRequestFullscreen) {
-                webview.webkitRequestFullscreen();
-            } else if (webview.msRequestFullscreen) {
-                webview.msRequestFullscreen();
+        function toggleFullScreen() {
+            const embed = document.getElementById('embedContainer');
+            if (embed.requestFullscreen) {
+                embed.requestFullscreen();
+            } else if (embed.mozRequestFullScreen) { // Firefox
+                embed.mozRequestFullScreen();
+            } else if (embed.webkitRequestFullscreen) { // Chrome, Safari and Opera
+                embed.webkitRequestFullscreen();
+            } else if (embed.msRequestFullscreen) { // IE/Edge
+                embed.msRequestFullscreen();
             }
         }
 
         function toggleTheme() {
-            const body = document.body;
-            body.classList.toggle('light-mode');
+            document.body.classList.toggle('light-mode');
         }
     </script>
 </body>
