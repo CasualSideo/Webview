@@ -106,6 +106,7 @@
             flex: 1;
             overflow: hidden;
             position: relative;
+            display: none; /* Hide initially */
         }
         embed {
             width: 100%;
@@ -165,7 +166,7 @@
         <div class="button" onclick="toggleTheme()">🌙/☀️</div>
     </div>
 
-    <div class="embed-container">
+    <div class="embed-container" id="embedContainer">
         <embed id="webview" src="https://www.google.com/webhp?igu=1" allowfullscreen></embed>
     </div>
 
@@ -229,9 +230,9 @@
 
         function addTab() {
             const newTabIndex = tabs.length;
-            tabs.push({ url: startingURL });
+            tabs.push({ url: startingURL }); // Add a new tab
             createTabElement(newTabIndex);
-            switchTab(newTabIndex);
+            switchTab(newTabIndex); // Switch to the new tab
         }
 
         function createTabElement(index) {
@@ -251,6 +252,7 @@
 
             tab.appendChild(closeButton);
             tabContainer.appendChild(tab);
+            document.getElementById('embedContainer').style.display = 'block'; // Show embed container when a tab is created
         }
 
         function switchTab(index) {
@@ -274,7 +276,13 @@
 
         function removeTab(index) {
             if (tabs.length === 1) {
-                alert("Cannot close the last tab.");
+                alert("Cannot close the last tab. Redirecting to a blank page.");
+                document.getElementById('webview').src = "about:blank";
+                updateURLBar("about:blank");
+                tabs.length = 0; // Clear tabs array
+                activeTabIndex = -1; // Reset active tab index
+                document.getElementById('tabContainer').innerHTML = ""; // Clear tab container
+                document.getElementById('embedContainer').style.display = 'none'; // Hide embed container
                 return;
             }
 
@@ -309,20 +317,6 @@
             const urlInput = document.getElementById('urlInput');
             urlInput.value = url;
         }
-
-        // Prevent closing the last tab
-        document.addEventListener('DOMContentLoaded', () => {
-            // Ensure at least one tab is always open
-            if (tabs.length === 0) {
-                addTab();
-            }
-        });
-
-        // Handle browser navigation (back/forward buttons)
-        window.onpopstate = function(event) {
-            // Do nothing for now, as navigation within the embed cannot be tracked
-        };
     </script>
-
 </body>
 </html>
