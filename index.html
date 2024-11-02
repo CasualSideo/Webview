@@ -143,7 +143,6 @@
     </div>
     <div class="button" onclick="loadPage()">Go</div>
     <div class="button" onclick="addTab()">+ Tab</div>
-    <div class="button" onclick="closeAllTabs()">🗑️ Close All Tabs</div>
     <div class="button" onclick="toggleFullScreen()">⛶</div>
     <div class="button" onclick="toggleTheme()">🌙/☀️</div>
 </div>
@@ -257,15 +256,8 @@
             document.getElementById('tabContainer').style.display = 'none';
             document.getElementById('embedContainer').style.display = 'none';
             document.getElementById('urlInput').value = 'about:blank'; // Set URL bar to about:blank
+            document.getElementById('webview').src = 'about:blank'; // Set embed to about:blank
         }
-    }
-
-    function closeAllTabs() {
-        tabs.length = 0; // Clear the tabs array
-        document.getElementById('tabContainer').innerHTML = ''; // Clear the tab container
-        document.getElementById('tabContainer').style.display = 'none'; // Hide the tab bar
-        document.getElementById('embedContainer').style.display = 'none'; // Hide the embed
-        document.getElementById('urlInput').value = 'about:blank'; // Set URL bar to about:blank
     }
 
     function toggleFullScreen() {
