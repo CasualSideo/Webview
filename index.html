@@ -137,8 +137,8 @@
 
 <div class="tab-container" id="tabContainer"></div>
 
-<div class="toolbar">
-    <div class="url-bar">
+<div class="toolbar" id="toolbar">
+    <div class="url-bar" id="urlBar">
         <input type="text" id="urlInput" placeholder="Enter URL or search query" onkeydown="checkEnter(event)" />
     </div>
     <div class="button" onclick="loadPage()">Go</div>
@@ -254,6 +254,7 @@
         if (tabs.length === 0) {
             document.getElementById('tabContainer').style.display = 'none'; // Hide tab bar
             document.getElementById('embedContainer').style.display = 'none'; // Hide embed
+            document.getElementById('urlBar').style.display = 'none'; // Hide URL bar
             document.getElementById('urlInput').value = 'about:blank'; // Set URL bar to about:blank
             document.getElementById('webview').src = 'about:blank'; // Set embed to about:blank
         } else {
