@@ -221,12 +221,13 @@
         tab.appendChild(closeButton);
         document.getElementById('tabContainer').appendChild(tab);
         switchTab(newTabIndex); // Automatically switch to the newly added tab
-        document.getElementById('tabContainer').style.display = 'flex'; // Show tab bar
-        document.getElementById('embedContainer').style.display = 'block'; // Show embed
+        document.getElementById('tabContainer').style.display = 'flex'; // Ensure tab bar is shown
+        document.getElementById('embedContainer').style.display = 'block'; // Ensure embed is shown
     }
 
     function switchTab(index) {
-        const previousTab = tabs[activeTabIndex];
+        if (index < 0 || index >= tabs.length) return;
+
         activeTabIndex = index;
         const currentTab = tabs[activeTabIndex];
 
