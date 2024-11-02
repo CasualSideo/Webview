@@ -107,7 +107,7 @@
             overflow: hidden;
             position: relative;
         }
-        iframe {
+        embed {
             width: 100%;
             height: 100%;
             border: none;
@@ -150,7 +150,6 @@
             box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
         }
     </style>
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; child-src https://www.google.com https://vercel.live; frame-ancestors 'none';">
 </head>
 <body class="dark-mode">
 
@@ -166,8 +165,8 @@
         <div class="button" onclick="toggleTheme()">🌙/☀️</div>
     </div>
 
-    <div class="embed-container" id="embedContainer">
-        <iframe id="webview" src="" allowfullscreen></iframe>
+    <div class="embed-container" id="embedContainer" style="display: none;">
+        <embed id="webview" src="" allowfullscreen></embed>
     </div>
 
     <div class="bottom-border"></div>
@@ -211,6 +210,7 @@
                     updateURLBar(url);
                 } 
             } else {
+                // If URL bar is blank, load the starting URL and update URL bar
                 loadStartingURL();
             }
         }
@@ -244,7 +244,7 @@
             const tabContainer = document.getElementById('tabContainer');
             const tab = document.createElement('div');
             tab.className = 'tab';
-            tab.innerText = `Tab ${index + 1}`;
+            tab.innerText = 'Tab ' + (index + 1);
             tab.onclick = () => switchTab(index);
 
             const closeButton = document.createElement('span');
@@ -257,57 +257,51 @@
 
             tab.appendChild(closeButton);
             tabContainer.appendChild(tab);
-            document.getElementById('embedContainer').style.display = 'block';
-        }
-
-        function removeTab(index) {
-            tabs.splice(index, 1);
-            const tabContainer = document.getElementById('tabContainer');
-            tabContainer.removeChild(tabContainer.children[index]);
-
-            if (index < activeTabIndex) {
-                activeTabIndex--;
-            } else if (index === activeTabIndex) {
-                activeTabIndex = (tabs.length > 0) ? (activeTabIndex - 1) : -1;
-            }
-
-            if (activeTabIndex >= 0) {
-                switchTab(activeTabIndex);
-            } else {
-                document.getElementById('webview').src = '';
-                document.getElementById('urlInput').value = '';
-                document.getElementById('embedContainer').style.display = 'none';
-            }
+            document.getElementById('embedContainer').style.display = 'flex';
+            activeTabIndex = index;
+            switchTab(index);
         }
 
         function switchTab(index) {
-            if (index >= 0 && index < tabs.length) {
-                activeTabIndex = index;
-                const currentTab = tabs[index];
-                document.getElementById('webview').src = currentTab.url;
-                updateURLBar(currentTab.url);
-                updateTabStyles();
-            }
+            if (index < 0 || index >= tabs.length) return;
+            activeTabIndex = index;
+            const currentTab = tabs[activeTabIndex];
+            updateURLBar(currentTab.url);
+            document.getElementById('webview').src = currentTab.url;
+            const tabElements = document.querySelectorAll('.tab');
+            tabElements.forEach((tab, i) => {
+                tab.classList.toggle('active', i === index);
+            });
         }
 
         function updateURLBar(url) {
             document.getElementById('urlInput').value = url;
         }
 
-        function updateTabStyles() {
+        function removeTab(index) {
+            tabs.splice(index, 1);
             const tabElements = document.querySelectorAll('.tab');
-            tabElements.forEach((tab, index) => {
-                tab.classList.toggle('active', index === activeTabIndex);
-            });
+            tabElements[index].remove();
+            if (tabs.length > 0) {
+                if (activeTabIndex >= index) {
+                    activeTabIndex = Math.max(activeTabIndex - 1, 0);
+                }
+                switchTab(activeTabIndex);
+            } else {
+                activeTabIndex = -1;
+                document.getElementById('embedContainer').style.display = 'none';
+                document.getElementById('urlInput').value = '';
+            }
         }
 
         function toggleFullScreen() {
+            const elem = document.documentElement;
             if (!document.fullscreenElement) {
-                document.documentElement.requestFullscreen();
+                elem.requestFullscreen().catch(err => {
+                    console.log(`Error attempting to enable full-screen mode: ${err.message} (${err.name})`);
+                });
             } else {
-                if (document.exitFullscreen) {
-                    document.exitFullscreen();
-                }
+                document.exitFullscreen();
             }
         }
 
