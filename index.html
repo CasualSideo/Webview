@@ -143,6 +143,7 @@
     </div>
     <div class="button" onclick="loadPage()">Go</div>
     <div class="button" onclick="addTab()">+ Tab</div>
+    <div class="button" onclick="closeAllTabs()">Close All Tabs</div>
     <div class="button" onclick="toggleFullScreen()">⛶</div>
     <div class="button" onclick="toggleTheme()">🌙/☀️</div>
 </div>
@@ -227,7 +228,7 @@
         activeTabIndex = index;
 
         document.getElementById('urlInput').value = previousTab.url; // Update the URL input to show current URL
-        document.getElementById('webview').src = previousTab.url;
+        document.getElementById('webview').src = previousTab.url; // Load the URL in the webview
 
         const tabDivs = document.getElementById('tabContainer').getElementsByClassName('tab');
         for (let i = 0; i < tabDivs.length; i++) {
@@ -238,7 +239,6 @@
 
     function removeTab(index) {
         const tabDivs = document.getElementById('tabContainer').getElementsByClassName('tab');
-
         document.getElementById('tabContainer').removeChild(tabDivs[index]);
         tabs.splice(index, 1); // Remove the tab from the tabs array
 
@@ -252,14 +252,23 @@
 
         // Check if there are no tabs left
         if (tabs.length === 0) {
-            document.getElementById('tabContainer').style.display = 'none'; // Hide tab bar
-            document.getElementById('embedContainer').style.display = 'none'; // Hide embed
-            document.getElementById('urlBar').style.display = 'none'; // Hide URL bar
-            document.getElementById('urlInput').value = 'about:blank'; // Set URL bar to about:blank
-            document.getElementById('webview').src = 'about:blank'; // Set embed to about:blank
+            clearAllTabs(); // Call function to clear all tabs
         } else {
             switchTab(activeTabIndex); // Switch to a valid tab if there are remaining tabs
         }
+    }
+
+    function closeAllTabs() {
+        tabs.length = 0; // Clear the tabs array
+        clearAllTabs(); // Call function to handle clearing of UI
+    }
+
+    function clearAllTabs() {
+        document.getElementById('tabContainer').style.display = 'none'; // Hide tab bar
+        document.getElementById('embedContainer').style.display = 'none'; // Hide embed
+        document.getElementById('urlBar').style.display = 'none'; // Hide URL bar
+        document.getElementById('urlInput').value = 'about:blank'; // Set URL bar to about:blank
+        document.getElementById('webview').src = 'about:blank'; // Set embed to about:blank
     }
 
     function toggleFullScreen() {
