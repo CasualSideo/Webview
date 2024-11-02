@@ -266,8 +266,7 @@
     function clearAllTabs() {
         document.getElementById('tabContainer').style.display = 'none'; // Hide tab bar
         document.getElementById('embedContainer').style.display = 'none'; // Hide embed
-        document.getElementById('urlBar').style.display = 'none'; // Hide URL bar
-        document.getElementById('urlInput').value = 'about:blank'; // Set URL bar to about:blank
+        document.getElementById('urlInput').value = 'about:blank'; // Set URL input to about:blank
         document.getElementById('webview').src = 'about:blank'; // Set embed to about:blank
     }
 
@@ -292,7 +291,7 @@
 
     // Load initial page
     document.addEventListener('DOMContentLoaded', () => {
-        addTab();
+        addTab(); // Start with one tab open
     });
 </script>
 </body>
