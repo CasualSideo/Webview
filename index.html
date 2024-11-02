@@ -228,9 +228,12 @@
     function switchTab(index) {
         const previousTab = tabs[activeTabIndex];
         activeTabIndex = index;
+        const currentTab = tabs[activeTabIndex];
 
-        document.getElementById('webview').src = previousTab.url; // Load the URL in the webview
+        // Load the URL in the webview
+        document.getElementById('webview').src = currentTab.url;
 
+        // Update tab styles
         const tabDivs = document.getElementById('tabContainer').getElementsByClassName('tab');
         for (let i = 0; i < tabDivs.length; i++) {
             tabDivs[i].classList.remove('active');
@@ -253,7 +256,7 @@
 
         // Check if there are no tabs left
         if (tabs.length === 0) {
-            clearAllTabs(); // Call function to clear all tabs
+            clearAllTabs(); // Call function to clear all tabs and hide UI
         } else {
             switchTab(activeTabIndex); // Switch to a valid tab if there are remaining tabs
         }
