@@ -106,7 +106,6 @@
             flex: 1;
             overflow: hidden;
             position: relative;
-            display: none; /* Initially hidden until a tab is selected */
         }
         iframe {
             width: 100%;
@@ -151,7 +150,7 @@
             box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.2);
         }
     </style>
-    <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'none'; child-src 'self';">
+    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; child-src https://www.google.com https://vercel.live; frame-ancestors 'none';">
 </head>
 <body class="dark-mode">
 
@@ -179,7 +178,9 @@
         const tabs = [];
 
         window.onload = function() {
-            addTab(); // Automatically add the first tab on load
+            if (activeTabIndex === -1) {
+                addTab();
+            }
         };
 
         function loadPage() {
@@ -200,7 +201,7 @@
                 if (urlPattern.test(input)) {
                     url = (input.startsWith('http://') || input.startsWith('https://')) ? input : 'https://' + input;
                 } else {
-                    url = `${searchBaseUrl}${encodeURIComponent(input)}`;
+                    url = searchBaseUrl + encodeURIComponent(input);
                 }
 
                 if (activeTabIndex >= 0) {
@@ -208,9 +209,8 @@
                     currentTab.url = url;
                     document.getElementById('webview').src = url;
                     updateURLBar(url);
-                }
+                } 
             } else {
-                // If URL bar is blank, load the starting URL and update URL bar
                 loadStartingURL();
             }
         }
@@ -257,43 +257,48 @@
 
             tab.appendChild(closeButton);
             tabContainer.appendChild(tab);
-        }
-
-        function switchTab(index) {
-            if (index < 0 || index >= tabs.length) return;
-
-            const currentTab = tabs[activeTabIndex];
-            if (currentTab) {
-                currentTab.url = document.getElementById('webview').src;
-            }
-            activeTabIndex = index;
-
-            tabs.forEach((tab, i) => {
-                const tabElement = document.querySelector(`.tab:nth-child(${i + 1})`);
-                tabElement.classList.toggle('active', i === activeTabIndex);
-            });
-
-            const url = tabs[activeTabIndex].url;
-            document.getElementById('webview').src = url;
-            updateURLBar(url);
+            document.getElementById('embedContainer').style.display = 'block';
         }
 
         function removeTab(index) {
-            if (tabs.length > 1) {
-                tabs.splice(index, 1);
-                const tabContainer = document.getElementById('tabContainer');
-                tabContainer.removeChild(tabContainer.childNodes[index]);
-                if (activeTabIndex >= index) {
-                    activeTabIndex = Math.max(0, activeTabIndex - 1);
-                }
+            tabs.splice(index, 1);
+            const tabContainer = document.getElementById('tabContainer');
+            tabContainer.removeChild(tabContainer.children[index]);
+
+            if (index < activeTabIndex) {
+                activeTabIndex--;
+            } else if (index === activeTabIndex) {
+                activeTabIndex = (tabs.length > 0) ? (activeTabIndex - 1) : -1;
+            }
+
+            if (activeTabIndex >= 0) {
                 switchTab(activeTabIndex);
             } else {
-                alert("Cannot close the last tab.");
+                document.getElementById('webview').src = '';
+                document.getElementById('urlInput').value = '';
+                document.getElementById('embedContainer').style.display = 'none';
+            }
+        }
+
+        function switchTab(index) {
+            if (index >= 0 && index < tabs.length) {
+                activeTabIndex = index;
+                const currentTab = tabs[index];
+                document.getElementById('webview').src = currentTab.url;
+                updateURLBar(currentTab.url);
+                updateTabStyles();
             }
         }
 
         function updateURLBar(url) {
             document.getElementById('urlInput').value = url;
+        }
+
+        function updateTabStyles() {
+            const tabElements = document.querySelectorAll('.tab');
+            tabElements.forEach((tab, index) => {
+                tab.classList.toggle('active', index === activeTabIndex);
+            });
         }
 
         function toggleFullScreen() {
