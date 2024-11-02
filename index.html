@@ -106,6 +106,7 @@
             flex: 1;
             overflow: hidden;
             position: relative;
+            display: none; /* Initially hidden until a tab is selected */
         }
         iframe {
             width: 100%;
@@ -166,7 +167,7 @@
         <div class="button" onclick="toggleTheme()">🌙/☀️</div>
     </div>
 
-    <div class="embed-container" id="embedContainer" style="display: none;">
+    <div class="embed-container" id="embedContainer">
         <iframe id="webview" src="" allowfullscreen></iframe>
     </div>
 
@@ -178,9 +179,7 @@
         const tabs = [];
 
         window.onload = function() {
-            if (activeTabIndex === -1) {
-                addTab();
-            }
+            addTab(); // Automatically add the first tab on load
         };
 
         function loadPage() {
@@ -209,7 +208,7 @@
                     currentTab.url = url;
                     document.getElementById('webview').src = url;
                     updateURLBar(url);
-                } 
+                }
             } else {
                 // If URL bar is blank, load the starting URL and update URL bar
                 loadStartingURL();
