@@ -252,8 +252,8 @@
 
         // Check if there are no tabs left
         if (tabs.length === 0) {
-            document.getElementById('tabContainer').style.display = 'none';
-            document.getElementById('embedContainer').style.display = 'none';
+            document.getElementById('tabContainer').style.display = 'none'; // Hide tab bar
+            document.getElementById('embedContainer').style.display = 'none'; // Hide embed
             document.getElementById('urlInput').value = 'about:blank'; // Set URL bar to about:blank
             document.getElementById('webview').src = 'about:blank'; // Set embed to about:blank
         } else {
