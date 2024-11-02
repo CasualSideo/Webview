@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Google</title>
     <link rel="icon" href="https://www.google.com/favicon.ico" type="image/x-icon">
-    <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; object-src 'self' https://www.google.com; frame-src https://www.google.com; base-uri 'self'; form-action 'self'; style-src 'self' 'unsafe-inline';">
     <style>
         body {
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
@@ -103,25 +102,18 @@
             font-weight: bold;
             font-size: 12px;
         }
-        .iframe-container {
+        .embed-container {
             flex: 1;
             overflow: hidden;
             position: relative;
-            display: flex;
         }
-        .webview {
+        embed {
             width: 100%;
             height: 100%;
             border: none;
             position: absolute;
             top: 0;
             left: 0;
-        }
-        .java-iframe, .flash-iframe {
-            width: 100%;
-            height: 100%;
-            border: none;
-            display: none; /* Initially hidden */
         }
         .light-mode {
             background-color: #f1f1f1;
@@ -173,10 +165,8 @@
         <div class="button" onclick="toggleTheme()">🌙/☀️</div>
     </div>
 
-    <div class="iframe-container" id="iframeContainer" style="display: none;">
-        <iframe id="webview" class="webview" src="" allowfullscreen></iframe>
-        <iframe id="javaFrame" class="java-iframe" src="" allowfullscreen></iframe>
-        <iframe id="flashFrame" class="flash-iframe" src="" allowfullscreen></iframe>
+    <div class="embed-container" id="embedContainer" style="display: none;">
+        <embed id="webview" src="" allowfullscreen></embed>
     </div>
 
     <div class="bottom-border"></div>
@@ -213,113 +203,100 @@
                     url = `${searchBaseUrl}${encodeURIComponent(input)}`;
                 }
 
-                // Prompt the user before redirecting
                 if (activeTabIndex >= 0) {
                     const currentTab = tabs[activeTabIndex];
-                    if (confirm(`Are you sure you want to navigate to ${url}?`)) {
-                        currentTab.url = url;
-                        loadContent(url);
-                        updateURLBar(url);
-                    }
-                }
+                    currentTab.url = url;
+                    document.getElementById('webview').src = url;
+                    updateURLBar(url);
+                } 
             } else {
+                // If URL bar is blank, load the starting URL and update URL bar
                 loadStartingURL();
             }
         }
 
-        function loadContent(url) {
+        function loadStartingURL() {
             const currentTab = tabs[activeTabIndex];
-
-            // Hide all frames initially
-            document.getElementById('webview').style.display = 'none';
-            document.getElementById('javaFrame').style.display = 'none';
-            document.getElementById('flashFrame').style.display = 'none';
-
-            if (url.endsWith('.jar')) { // Example condition for Java content
-                document.getElementById('javaFrame').src = url;
-                document.getElementById('javaFrame').style.display = 'block';
-            } else if (url.endsWith('.swf')) { // Example condition for Flash content
-                document.getElementById('flashFrame').src = url;
-                document.getElementById('flashFrame').style.display = 'block';
-            } else {
-                document.getElementById('webview').src = url;
-                document.getElementById('webview').style.display = 'block';
+            if (currentTab) {
+                currentTab.url = startingURL;
+                document.getElementById('webview').src = startingURL;
+                updateURLBar(startingURL);
             }
-            toggleIframeVisibility(true);
         }
 
         function checkEnter(event) {
             if (event.key === 'Enter') {
+                if (activeTabIndex === -1) {
+                    addTab();
+                }
                 loadPage();
             }
         }
 
-        function addTab(url = startingURL) {
-            const index = tabs.length;
-            tabs.push({ url });
+        function addTab() {
+            const newTabIndex = tabs.length;
+            tabs.push({ url: startingURL });
+            createTabElement(newTabIndex);
+            switchTab(newTabIndex);
+        }
 
+        function createTabElement(index) {
             const tabContainer = document.getElementById('tabContainer');
             const tab = document.createElement('div');
             tab.className = 'tab';
-            tab.textContent = url;
+            tab.innerText = `Tab ${index + 1}`;
             tab.onclick = () => switchTab(index);
 
             const closeButton = document.createElement('span');
             closeButton.className = 'close-tab';
-            closeButton.textContent = '✖';
-            closeButton.onclick = (event) => {
-                event.stopPropagation(); // Prevent tab switch
-                closeTab(index);
+            closeButton.innerText = '✖';
+            closeButton.onclick = (e) => {
+                e.stopPropagation();
+                removeTab(index);
             };
 
             tab.appendChild(closeButton);
             tabContainer.appendChild(tab);
-            switchTab(index); // Switch to the new tab
+            document.getElementById('embedContainer').style.display = 'flex';
+            activeTabIndex = index;
+            switchTab(index);
         }
 
         function switchTab(index) {
             if (index < 0 || index >= tabs.length) return;
 
+            const currentTab = tabs[activeTabIndex];
+            if (currentTab) {
+                currentTab.url = document.getElementById('webview').src;
+            }
             activeTabIndex = index;
-            const currentTab = tabs[index];
 
-            loadContent(currentTab.url);
-            updateURLBar(currentTab.url);
-            updateTabStyles();
+            tabs.forEach((tab, i) => {
+                const tabElement = document.querySelector(`.tab:nth-child(${i + 1})`);
+                tabElement.classList.toggle('active', i === activeTabIndex);
+            });
+
+            const url = tabs[activeTabIndex].url;
+            document.getElementById('webview').src = url;
+            updateURLBar(url);
+        }
+
+        function removeTab(index) {
+            if (tabs.length > 1) {
+                tabs.splice(index, 1);
+                const tabContainer = document.getElementById('tabContainer');
+                tabContainer.removeChild(tabContainer.childNodes[index]);
+                if (activeTabIndex >= index) {
+                    activeTabIndex = Math.max(0, activeTabIndex - 1);
+                }
+                switchTab(activeTabIndex);
+            } else {
+                alert("Cannot close the last tab.");
+            }
         }
 
         function updateURLBar(url) {
             document.getElementById('urlInput').value = url;
-        }
-
-        function updateTabStyles() {
-            const tabElements = document.getElementsByClassName('tab');
-            for (let i = 0; i < tabElements.length; i++) {
-                tabElements[i].classList.remove('active');
-            }
-            tabElements[activeTabIndex].classList.add('active');
-        }
-
-        function closeTab(index) {
-            if (tabs.length <= 1) return; // Prevent closing the last tab
-
-            tabs.splice(index, 1);
-            if (index < activeTabIndex) {
-                activeTabIndex--;
-            }
-            const tabContainer = document.getElementById('tabContainer');
-            tabContainer.removeChild(tabContainer.children[index]);
-
-            if (activeTabIndex >= 0) {
-                switchTab(activeTabIndex);
-            } else {
-                activeTabIndex = -1;
-                toggleIframeVisibility(false);
-            }
-        }
-
-        function toggleIframeVisibility(visible) {
-            document.getElementById('iframeContainer').style.display = visible ? 'flex' : 'none';
         }
 
         function toggleFullScreen() {
@@ -333,8 +310,7 @@
         }
 
         function toggleTheme() {
-            const body = document.body;
-            body.classList.toggle('light-mode');
+            document.body.classList.toggle('light-mode');
         }
     </script>
 </body>
