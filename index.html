@@ -207,19 +207,19 @@
         const tab = document.createElement('div');
         tab.className = 'tab';
         tab.innerText = `Tab ${newTabIndex + 1}`;
-        tab.onclick = () => switchTab(newTabIndex);
+        tab.onclick = () => switchTab(newTabIndex); // Allow switching to the new tab
 
         const closeButton = document.createElement('span');
         closeButton.className = 'close-tab';
         closeButton.innerText = '✖';
         closeButton.onclick = (e) => {
-            e.stopPropagation();
+            e.stopPropagation(); // Prevent tab click event from firing
             removeTab(newTabIndex);
         };
 
         tab.appendChild(closeButton);
         document.getElementById('tabContainer').appendChild(tab);
-        switchTab(newTabIndex);
+        switchTab(newTabIndex); // Automatically switch to the newly added tab
     }
 
     function switchTab(index) {
@@ -239,17 +239,16 @@
     function removeTab(index) {
         const tabDivs = document.getElementById('tabContainer').getElementsByClassName('tab');
 
-        if (tabDivs.length > 0) {
-            if (index < activeTabIndex) {
-                activeTabIndex--;
-            } else if (index === activeTabIndex) {
-                activeTabIndex = Math.max(activeTabIndex - 1, 0);
-            }
-        }
-
         document.getElementById('tabContainer').removeChild(tabDivs[index]);
         tabs.splice(index, 1); // Remove the tab from the tabs array
-        switchTab(activeTabIndex);
+
+        // If the active tab is closed, switch to the last tab
+        if (index === activeTabIndex) {
+            activeTabIndex = Math.max(index - 1, 0);
+            switchTab(activeTabIndex);
+        } else if (index < activeTabIndex) {
+            activeTabIndex--;
+        }
 
         // Check if there are no tabs left
         if (tabs.length === 0) {
@@ -257,6 +256,8 @@
             document.getElementById('embedContainer').style.display = 'none';
             document.getElementById('urlInput').value = 'about:blank'; // Set URL bar to about:blank
             document.getElementById('webview').src = 'about:blank'; // Set embed to about:blank
+        } else {
+            switchTab(activeTabIndex); // Switch to a valid tab if there are remaining tabs
         }
     }
 
