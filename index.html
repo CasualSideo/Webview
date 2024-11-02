@@ -221,13 +221,14 @@
         tab.appendChild(closeButton);
         document.getElementById('tabContainer').appendChild(tab);
         switchTab(newTabIndex); // Automatically switch to the newly added tab
+        document.getElementById('tabContainer').style.display = 'flex'; // Show tab bar
+        document.getElementById('embedContainer').style.display = 'block'; // Show embed
     }
 
     function switchTab(index) {
         const previousTab = tabs[activeTabIndex];
         activeTabIndex = index;
 
-        document.getElementById('urlInput').value = previousTab.url; // Update the URL input to show current URL
         document.getElementById('webview').src = previousTab.url; // Load the URL in the webview
 
         const tabDivs = document.getElementById('tabContainer').getElementsByClassName('tab');
